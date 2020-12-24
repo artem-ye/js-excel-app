@@ -40,6 +40,10 @@ class Dom {
         return this;
     }
 
+    find(selector) {
+        return $(this.$el.querySelector(selector));
+    }
+
     get data() {
         return this.$el.dataset;
     }
@@ -59,6 +63,27 @@ class Dom {
     css(styles = {}) {
         Object.keys(styles).forEach(key => this.$el.style[key] = styles[key]);
         return this;
+    }
+
+    addClass(className) {
+        this.$el.classList.add(className);
+        return this;
+    }
+
+    removeClass(className) {
+        this.$el.classList.remove(className);
+        return this;
+    }
+
+    cellid(parse) {
+        if (parse) {
+            const [rowid, colid] = this.cellid().split(':').map((e) => +e);
+            return {
+                rowid,
+                colid
+            };
+        }
+        return this.data.cellid;
     }
 }
 

@@ -3,14 +3,6 @@ const CODES = {
     Z: 90
 };
 
-function toCell(content, colIdx) {
-    return `
-        <div class="cell" contenteditable="true" data-colid="${colIdx}">
-            ${content}
-        </div>
-    `;
-}
-
 function createRow(rowIndex, dataContent) {
     const resizer = rowIndex ? '<div class="row-resize" data-resize="row"></div>' : '';
     return `
@@ -24,13 +16,39 @@ function createRow(rowIndex, dataContent) {
     `;
 }
 
-function toColumn(content, colIdx) {
+function toColumn(content, colId) {
     return `
-        <div class="column" data-type="resizable" data-colid="${colIdx}">
+        <div class="column" data-type="resizable" data-colid="${colId}">
             ${content}
             <div class="col-resize" data-resize="col"></div>
         </div>
     `;
+}
+
+// function toCell(content, colId, rowId) {
+//     console.log(rowId, colId);
+//     return `
+//         <div class="cell" contenteditable="true" data-colid="${colId}" data-rowid="${rowId}">
+//             ${content}
+//         </div>
+//     `;
+// }
+
+function toCell(rowId) {
+    return function(content, colId) {
+        return `
+         <div 
+            class="cell"
+            contenteditable="true"
+            data-rowid="${rowId}"
+            data-colid="${colId}"            
+            data-cellid="${rowId}:${colId}"
+            data-type="cell"
+        >
+             ${content}
+         </div>
+     `;
+    };
 }
 
 export function createTable(rowsCount=15) {
@@ -47,13 +65,12 @@ export function createTable(rowsCount=15) {
 
     rows.push( createRow('', headerCols) );
 
-    // Data rows
-    const dataCols = new Array(COLS_COUNT).fill('')
-        .map( toCell )
-        .join('');
-
-    for (let i=0; i<rowsCount; i++) {
-        rows.push( createRow(i+1, dataCols) );
+    for (let rowIdx=0; rowIdx<rowsCount; rowIdx++) {
+        const dataCols = new Array(COLS_COUNT).fill('')
+            // .map( (el, colIdx) => toCell(el, colIdx, rowIdx) )
+            .map( toCell(rowIdx) )
+            .join('');
+        rows.push( createRow(rowIdx+1, dataCols) );
     }
 
     return rows.join('');
