@@ -4,6 +4,7 @@ import { resizeHandler } from './table.resizer';
 import { isCell, isGroupSelection, isResizer, range, nextCell } from './table.functions';
 import { TableSelection } from './TableSelection';
 import { $ } from '../../core/dom';
+import * as actions from '../../redux/actions';
 
 export class Table extends ExcelComponent {
     static className = 'excel__table';
@@ -17,7 +18,7 @@ export class Table extends ExcelComponent {
     }
 
     toHTML() {
-        return createTable(35);
+        return createTable(35, this.store.getState());
     }
 
     prepare() {
@@ -30,6 +31,7 @@ export class Table extends ExcelComponent {
 
         this.$on('formula:input', data => {
             this.selection.$current.text(data);
+            this.updateTextInStore(data);
         });
 
         this.$on('formula:done', () => {
@@ -42,9 +44,18 @@ export class Table extends ExcelComponent {
         this.$emit('table:select', $cell);
     }
 
+    async resizeTable(event) {
+        try {
+            const data = await resizeHandler(event, this.$root);
+            this.$dispatch(actions.tableResize(data));
+        } catch (e) {
+            console.warn('Resize err', e.message);
+        }
+    }
+
     onMousedown(event) {
         if (isResizer(event)) {
-            resizeHandler(event, this.$root);
+            this.resizeTable(event);
         } else if (isCell(event)) {
             if (isGroupSelection(event)) {
                 const $target = $(event.target);
@@ -53,7 +64,7 @@ export class Table extends ExcelComponent {
                 this.selection.selectGroup($selectedCells);
             } else {
                 const $target = $(event.target);
-                this.selection.select($target);
+                this.selectCell($target);
             }
         }
     }
@@ -83,8 +94,15 @@ export class Table extends ExcelComponent {
         }
     }
 
+    updateTextInStore(value) {
+        const id = this.selection.$current.cellid();
+        this.$dispatch(actions.changeText( {id, value} ));
+    }
+
     onInput(event) {
-        this.$emit('table:input', $(event.target));
+        // this.$emit('table:input', $(event.target));
+        // console.log('ID', this.selection.$current.cellid());
+        this.updateTextInStore( $(event.target).text() );
     }
 }
 
