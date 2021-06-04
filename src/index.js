@@ -6,18 +6,27 @@ import { Header } from '@/components/header/Header';
 import { Table } from '@/components/table/Table';
 import { Toolbar } from '@/components/toolbar/Toolbar';
 
-import { storage } from './core/utils';
+import { storage, debounce } from './core/utils';
 import { initialState } from './redux/initialState';
 import { createStore } from './core/createStore';
 import { rootReducer } from './redux/rootReducer';
 
 const store = createStore(rootReducer, initialState);
 
-store.subscribe(state => {
-    // console.log('App state', state);
-    // localStorage.setItem('excel-state', JSON.stringify(state));
-    storage('excel-state', state);
-});
+const stateListener = state => {
+        console.log('App state [index.js]', state);
+        storage('excel-state', state);
+};
+store.subscribe( debounce(stateListener, 300) );
+
+// const stateListener = debounce(
+//     state => {
+//         console.log('App state [index.js]', state);
+//         storage('excel-state', state);
+//     },
+//     300
+// );
+// store.subscribe(stateListener);
 
 const excel = new Excel('#app', {
     components: [Header, Toolbar, Formula, Table],

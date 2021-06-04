@@ -1,3 +1,8 @@
+// import { defaultCellStyle } from '../../constants';
+import { defaultCellStyle } from '../../constants';
+import { parse } from '../../core/parse';
+import { toInlineStyles } from '../../core/utils';
+
 const CODES = {
     A: 65,
     Z: 90
@@ -49,11 +54,14 @@ function toColumn({content, colId, width}) {
     `;
 }
 
-function toCell(colState, cellsDataState, rowId) {
+function toCell(state, rowId) {
+    const {colState, cellsDataState, stylesState = {}} = state;
+
     return function(_, colId) {
         const width = getColWidth(colState, colId);
         const cellId = `${rowId}:${colId}`;
         const content = getCellText(cellsDataState, cellId);
+        const styles = toInlineStyles({...defaultCellStyle, ...stylesState[cellId]});
 
         return `
          <div 
@@ -63,9 +71,10 @@ function toCell(colState, cellsDataState, rowId) {
             data-colid="${colId}"            
             data-cellid="${cellId}"
             data-type="cell"
-            style="width: ${width}"
+            data-value="${content || ''}"
+            style="${styles}; width: ${width}"
         >
-             ${content}
+             ${parse(content)}
          </div>
      `;
     };
@@ -82,7 +91,8 @@ function withWidthFrom(state) {
 export function createTable(rowsCount=15, state = {}) {
     const COLS_COUNT = CODES.Z - CODES.A + 1;
     const rows = [];
-    const {colState, rowState, cellsDataState} = state;
+    // const {colState, rowState, cellsDataState} = state;
+    const {colState, rowState} = state;
 
     // Header
     const cbArrIndexToColTitle = (_, index) => String.fromCharCode(CODES.A + index);
@@ -97,7 +107,7 @@ export function createTable(rowsCount=15, state = {}) {
 
     for (let rowIdx=0; rowIdx<rowsCount; rowIdx++) {
         const dataCols = new Array(COLS_COUNT).fill('')
-            .map( toCell(colState, cellsDataState, rowIdx) )
+            .map( toCell(state, rowIdx) )
             .join('');
         rows.push( createRow(rowIdx+1, dataCols, getRowHeight(rowState, rowIdx+1)) );
     }

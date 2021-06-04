@@ -5,6 +5,8 @@ import { isCell, isGroupSelection, isResizer, range, nextCell } from './table.fu
 import { TableSelection } from './TableSelection';
 import { $ } from '../../core/dom';
 import * as actions from '../../redux/actions';
+import { defaultCellStyle } from '../../constants';
+import { parse } from '../../core/parse';
 
 export class Table extends ExcelComponent {
     static className = 'excel__table';
@@ -30,18 +32,30 @@ export class Table extends ExcelComponent {
         this.selectCell( this.$root.find('[data-cellid="0:0"]') );
 
         this.$on('formula:input', data => {
-            this.selection.$current.text(data);
+            this.selection.$current
+                 .text(parse(data))
+                 .attr('data-value', data);
             this.updateTextInStore(data);
         });
 
         this.$on('formula:done', () => {
             this.selection.$current.focus();
         });
+
+        this.$on('toolbar:applyStyle', value => {
+            this.selection.applyStyle(value);
+            this.$dispatch( actions.applyStyle({
+                value,
+                ids: this.selection.selectedIds
+            }));
+        });
     }
 
     selectCell($cell) {
         this.selection.select($cell);
         this.$emit('table:select', $cell);
+        const styles = $cell.getStyles(Object.keys(defaultCellStyle));
+        this.$dispatch(actions.changeStyles(styles));
     }
 
     async resizeTable(event) {
@@ -100,8 +114,6 @@ export class Table extends ExcelComponent {
     }
 
     onInput(event) {
-        // this.$emit('table:input', $(event.target));
-        // console.log('ID', this.selection.$current.cellid());
         this.updateTextInStore( $(event.target).text() );
     }
 }
