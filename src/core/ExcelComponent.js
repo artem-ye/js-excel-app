@@ -4,8 +4,13 @@ export class ExcelComponent extends DomListener {
     constructor($root, options={}) {
         super($root, options.listeners, options.name || 'ExcelComponent');
         this.prepare();
+
         this.emitter = options.emitter;
         this.emitterUnSubscribers = [];
+
+        this.storeSubscriptions = options.storeSubscriptions || [];
+        this.store = options.store;
+        this.storeSub = null;
     }
 
     // Pre init component settings
@@ -30,9 +35,26 @@ export class ExcelComponent extends DomListener {
         this.emitterUnSubscribers.push(unsub);
     }
 
+    // Pure REDUX
+    $dispatch(action) {
+        this.store.dispatch(action);
+    }
+
+    onStoreUpdate() {}
+
+    isStoreWatching(key) {
+        return this.storeSubscriptions.includes(key);
+    }
+
+    // // Pure REDUX
+    // $subscribe(fn) {
+    //     this.storeSub = this.store.subscribe(fn);
+    // }
+
     destroy() {
         this.removeDomListeners();
         this.emitterUnSubscribers.forEach(unsub => unsub());
+        // this.storeSub.unsubscribe();
     }
 }
 

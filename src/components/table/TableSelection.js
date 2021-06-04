@@ -30,10 +30,18 @@ export class TableSelection {
         this.$group = $group;
     }
 
+    get selectedIds() {
+        return this.$group.map($el => $el.cellid());
+    }
+
     clear() {
         this.$group.splice(0, this.$group.length).forEach(
             $cell => $cell.removeClass(TableSelection.selectedCssClass)
         );
+    }
+
+    applyStyle(style) {
+        this.$group.forEach($el => $el.css(style));
     }
 }
 
