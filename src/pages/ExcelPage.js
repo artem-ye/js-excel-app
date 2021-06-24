@@ -7,7 +7,7 @@ import { Table } from '@/components/table/Table';
 import { Toolbar } from '@/components/toolbar/Toolbar';
 
 import { storage, debounce } from '@/core/utils';
-import { createStore } from '@/core/createStore';
+import { createStore } from '@/core/store/createStore';
 import { rootReducer } from '@/redux/rootReducer';
 import { normalizeInitialState } from '../redux/initialState';
 
