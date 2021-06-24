@@ -30,6 +30,10 @@ export function toInlineStyles(styles={}) {
         .join('; ');
 }
 
+export function preventDefault(event) {
+    event.preventDefault();
+}
+
 export function debounce(fn, wait) {
     let timeout;
 
